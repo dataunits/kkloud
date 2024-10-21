@@ -1,4 +1,3 @@
-#! /Users/anassqasmi/.venvs/kkloud/bin/python3
 
 import os
 import click
