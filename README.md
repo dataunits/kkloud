@@ -16,10 +16,10 @@ Follow these steps to set up `kkloud` on your machine.
 First, clone the repository to your local machine:
 
 ```bash
-curl -L -o kkloud.tar.gz "$REPO_URL"
+curl -L -o kkloud.tar.gz https://github.com/dataunits/kkloud/blob/main/bin/kkloud.tar.gz
 # Extract the .tar.gz file
 tar -xzf kkloud.tar.gz
 
-cd kkloud
+cd kkloud-cli
 
 ./get-kkloud.sh && rm kkloud.tar.gz
