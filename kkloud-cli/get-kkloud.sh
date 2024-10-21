@@ -71,4 +71,4 @@ echo "$CLI_NAME a été installé avec succès et est maintenant accessible glob
 
 # Instructions pour l'utilisateur
 echo "Si vous ne pouvez pas encore exécuter la commande, redémarrez le terminal ou exécutez :"
-echo "source ~/.bashrc"
+echo "source ~/.bash_profile"
