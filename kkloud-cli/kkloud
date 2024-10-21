@@ -1,0 +1,195 @@
+#! /Users/anassqasmi/.venvs/kkloud/bin/python3
+
+import os
+import click
+import json
+import subprocess
+import requests
+import os
+import webbrowser
+from urllib.parse import urlencode, parse_qs, urlparse
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import base64
+
+
+# Auth0 configurations
+AUTH0_DOMAIN = 'wetrustyou.eu.auth0.com'
+CLIENT_ID = 'm3Gmsn1MSlTVL4ZUXxsRHWZQEfghg4Bz'
+REDIRECT_URI = 'http://localhost:8181/callback'
+AUDIENCE = 'kkcloud_auth'
+SCOPE = 'openid profile email'
+AUTHORIZATION_URL = f'https://{AUTH0_DOMAIN}/authorize'
+TOKEN_URL = f'https://{AUTH0_DOMAIN}/oauth/token'
+CACHE_FILE = os.path.expanduser('~/.k_loud_cache.json')
+
+kkloud_api_url='http://213.199.40.251'
+
+# Cache management
+def save_to_cache(data):
+    with open(CACHE_FILE, 'w') as f:
+        json.dump(data, f)
+
+def load_from_cache():
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+def clear_cache():
+    if os.path.exists(CACHE_FILE):
+        os.remove(CACHE_FILE)
+
+# Simple HTTP server to handle the callback
+class CallbackHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        query_components = parse_qs(urlparse(self.path).query)
+        #print(query_components)
+        if 'code' in query_components:
+            self.server.auth_code = query_components['code'][0]
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(b'Login successful! You can close this window.')
+        else:
+            self.send_response(400)
+            self.end_headers()
+
+def start_http_server():
+    server = HTTPServer(('localhost', 8181), CallbackHandler)
+    server.handle_request()  # Handle one request then close
+    return server.auth_code
+
+# Function to start the browser-based login
+def start_login_flow():
+    params = {
+        'client_id': CLIENT_ID,
+        'redirect_uri': REDIRECT_URI,
+        'response_type': 'code',
+        'scope': SCOPE,
+    }
+    url = f'{AUTHORIZATION_URL}?{urlencode(params)}'
+    click.echo('Opening browser for authentication...')
+    webbrowser.open(url)
+
+    # Start a local HTTP server to capture the redirect
+    auth_code = start_http_server()
+    if auth_code:
+        click.echo('Authentication successful!')
+        return auth_code
+    else:
+        click.echo('Authentication failed.')
+        return None
+
+# Function to exchange the authorization code for a token
+def exchange_code_for_token(auth_code):
+    payload = {
+        'grant_type': 'authorization_code',
+        'client_id': CLIENT_ID,
+        'code': auth_code,
+        'redirect_uri': REDIRECT_URI,
+    }
+    response = requests.post(TOKEN_URL, json=payload)
+    if response.status_code == 200:
+        token_data = response.json()
+        save_to_cache(token_data)
+        return token_data
+    else:
+        click.echo(f"Error fetching token: {response.text}")
+        return None
+
+# CLI group
+@click.group()
+def cli():
+    """CLI to interact with a public API after Auth0 login."""
+    pass
+
+# Login command
+@cli.command()
+def login():
+    """Authenticate the user with Auth0 and store the token."""
+    click.echo('Starting login process...')
+    auth_code = start_login_flow()
+    if auth_code:
+        token_data = exchange_code_for_token(auth_code)
+        if token_data:
+            click.echo('Token stored successfully.')
+        else:
+            click.echo('Failed to retrieve the token.')
+
+# Command to call a public API endpoint using the stored token
+@cli.command()
+#@click.argument('conf-kubectl')
+def configure_kubectl():
+    """Configure access to k8s cluster"""
+    token_data = load_from_cache()
+    if not token_data:
+        click.echo('No token found. Please login first.')
+        return
+
+    id_token = token_data.get('id_token')
+    headers = {'Authorization': f'Bearer {id_token}'}
+
+    # Replace with your actual API base URL
+    api_base_url = f"{kkloud_api_url}/get-cluster-config"
+    response = requests.get(f'{api_base_url}', headers=headers)
+
+    # Fetch cluster information from API
+    if response.status_code != 200:
+        print("Failed to get cluster info")
+        return
+
+    cluster_info = response.json()
+    cluster_name = cluster_info['cluster_name']
+    cluster_ca_base64 = cluster_info['cluster_ca']
+    cluster_ca = base64.b64decode(cluster_ca_base64)
+    #print(cluster_ca)
+
+    # Create a temporary file to store the CA certificate
+    ca_cert_path = '/tmp/cluster-ca.crt'
+    with open(ca_cert_path, 'wb') as f:
+        f.write(cluster_ca)
+
+    # Set the cluster in the kubeconfig
+    subprocess.run([
+        'kubectl', 'config', 'set-credentials', 'kkloud-oidc-user',
+        '--exec-api-version=client.authentication.k8s.io/v1beta1', 
+        '--exec-command=kubectl', 
+        '--exec-arg=oidc-login', 
+        '--exec-arg=get-token', 
+        '--exec-arg=--oidc-issuer-url=https://wetrustyou.eu.auth0.com/',
+        '--exec-arg=--oidc-client-id=m3Gmsn1MSlTVL4ZUXxsRHWZQEfghg4Bz',
+        '--exec-arg=--oidc-extra-scope=email'
+    ], check=True)
+
+
+    subprocess.run([
+        'kubectl', 'config', 'set-cluster', 'kkloud-cluster',
+        '--server=https://109.199.106.87:6443',  # Replace with actual API server URL
+        '--certificate-authority=' + ca_cert_path,
+        '--embed-certs=true'
+    ], check=True)
+
+    # Set the context using the cluster name
+    subprocess.run([
+        'kubectl', 'config', 'set-context', 'kkloud-ctx',
+        '--cluster=kkloud-cluster',
+        '--user='+ 'kkloud-oidc-user'
+    ], check=True)
+
+    # Set the context using the cluster name
+    subprocess.run([
+        'kubectl', 'config', 'use-context', 'kkloud-ctx'
+    ], check=True)
+
+    print(f'kubectl configured with cluster: {cluster_name}')
+
+# Logout command to clear cached token
+@cli.command()
+def logout():
+    """Clear the cached token."""
+    clear_cache()
+    click.echo('Logged out successfully.')
+
+# Entry point
+if __name__ == '__main__':
+    cli()
