@@ -20,6 +20,5 @@ curl -L -o kkloud.tar.gz https://github.com/dataunits/kkloud/blob/main/bin/kklou
 # Extract the .tar.gz file
 tar -xzf kkloud.tar.gz
 
-cd kkloud-cli
+./kkloud-cli/get-kkloud.sh && rm kkloud.tar.gz && rm -r kkloud
 
-./get-kkloud.sh && rm kkloud.tar.gz
