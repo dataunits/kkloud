@@ -1,4 +1,4 @@
-# KKCloud Command Line Tool
+# KKloud Command Line Tool
 
 `kkloud` is a command-line tool designed to simplify cloud resource management. This tool allows you to interact with your cloud infrastructure using an intuitive CLI.
 
