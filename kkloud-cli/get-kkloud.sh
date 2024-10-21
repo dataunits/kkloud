@@ -53,8 +53,8 @@ ln -sf "$VENV_DIR/bin/$CLI_NAME" "$LOCAL_BIN/$CLI_NAME"
 # Assure que ~/.local/bin est dans le PATH
 if [[ ":$PATH:" != *":$LOCAL_BIN:"* ]]; then
     echo "Ajout de ~/.local/bin au PATH dans ~/.bash_profile"
-    echo "export PATH=\"$LOCAL_BIN:\$PATH\"" >> ~/.bash_profile
-    export PATH="$LOCAL_BIN:$PATH"
+    echo "export PATH=\"$LOCAL_BIN/$CLI_NAME:\$PATH\"" >> ~/.bash_profile
+    export PATH="$LOCAL_BIN/$CLI_NAME:$PATH"
 fi
 
 # Vérifie si le CLI a été installé avec succès
