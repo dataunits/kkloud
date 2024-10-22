@@ -11,17 +11,20 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import base64
 
 
+# TODO use as env variables 
 # Auth0 configurations
 AUTH0_DOMAIN = 'wetrustyou.eu.auth0.com'
 CLIENT_ID = 'm3Gmsn1MSlTVL4ZUXxsRHWZQEfghg4Bz'
+
+# urls
+kkloud_api_url = 'http://kkloud.eu.001.cluster.dev.dataunits.io'
+edge_node = 'kkloud.eu.001.edge.cluster.dev.dataunits.io'
 REDIRECT_URI = 'http://localhost:8181/callback'
-AUDIENCE = 'kkcloud_auth'
+
 SCOPE = 'openid profile email'
 AUTHORIZATION_URL = f'https://{AUTH0_DOMAIN}/authorize'
 TOKEN_URL = f'https://{AUTH0_DOMAIN}/oauth/token'
 CACHE_FILE = os.path.expanduser('~/.k_loud_cache.json')
-
-kkloud_api_url='http://213.199.40.251'
 
 # Cache management
 def save_to_cache(data):
@@ -163,7 +166,7 @@ def configure_kubectl():
 
     subprocess.run([
         'kubectl', 'config', 'set-cluster', 'kkloud-cluster',
-        '--server=https://109.199.106.87:6443',  # Replace with actual API server URL
+        f'--server=https://{edge_node}:6443',  # Replace with actual API server URL
         '--certificate-authority=' + ca_cert_path,
         '--embed-certs=true'
     ], check=True)
