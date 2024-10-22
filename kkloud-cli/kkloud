@@ -18,8 +18,7 @@ CLIENT_ID = 'm3Gmsn1MSlTVL4ZUXxsRHWZQEfghg4Bz'
 
 # urls
 kkloud_api_url = 'http://kkloud.eu.001.cluster.dev.dataunits.io'
-# TODO add the host to kube cert in order to use it in the config file 'kkloud.eu.001.edge.cluster.dev.dataunits.io'
-edge_node = '109.199.106.87'
+edge_node = 'kkloud.eu.001.edge.cluster.dev.dataunits.io'
 REDIRECT_URI = 'http://localhost:8181/callback'
 
 SCOPE = 'openid profile email'
