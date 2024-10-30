@@ -16,8 +16,7 @@ jobs:
 
       - name: Create tar.gz archive
         run: |
-          ls -la
-          tar -czf kkloud-cli.tar.gz -C $github_workspace/kkloud/kkloud-cli .
+          tar -czf kkloud-cli.tar.gz -C ./kkloud-cli .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
