@@ -42,3 +42,16 @@ jobs:
           files: kkloud-cli.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Update Release Description
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0.0  # Must match the tag in the previous steps
+          release_name: Release v1.0.0  # Ensure this matches your release name
+          body: |
+            ## Artifact Download
+            You can download the artifact from the following link:
+
+            [Download folder_archive.tar.gz](https://github.com/${{ github.repository }}/releases/download/v1.0.0/folder_archive.tar.gz)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
