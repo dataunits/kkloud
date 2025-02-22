@@ -25,7 +25,7 @@ jobs:
       run: zip -r kkloud-cli.zip kkloud-cli
 
     - name: Upload release artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: kkloud-cli
         path: kkloud-cli.zip
