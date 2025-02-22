@@ -52,9 +52,15 @@ ln -sf "$VENV_DIR/bin/$CLI_NAME" "$LOCAL_BIN/$CLI_NAME"
 
 # Assure que ~/.local/bin est dans le PATH
 if [[ ":$PATH:" != *":$LOCAL_BIN:"* ]]; then
-    echo "Ajout de ~/.local/bin au PATH dans ~/.bash_profile"
-    echo "export PATH=\"$LOCAL_BIN/$CLI_NAME:\$PATH\"" >> ~/.bash_profile
-    export PATH="$LOCAL_BIN/$CLI_NAME:$PATH"
+    echo "Ajout de ~/.local/bin au PATH dans les fichiers de profil de shell"
+    for profile in ~/.bash_profile ~/.bashrc ~/.zshrc ~/.profile; do
+        if [ -f "$profile" ]; then
+            echo "##** start : ADDED BY KKLOUD (DO NOT EDIT) **##"  >> "$profile"
+            echo "export PATH=\"$LOCAL_BIN:\$PATH\"" >> "$profile"
+            echo "##** end : ADDED BY KKLOUD (DO NOT EDIT) **##"  >> "$profile"
+        fi
+    done
+    export PATH="$LOCAL_BIN:$PATH"
 fi
 
 # Vérifie si le CLI a été installé avec succès
