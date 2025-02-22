@@ -19,7 +19,7 @@ jobs:
           tar -czf kkloud-cli.tar.gz -C ./kkloud-cli .
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kkloud-cli
           path: kkloud-cli.tar.gz
