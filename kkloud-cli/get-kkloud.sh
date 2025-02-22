@@ -33,7 +33,7 @@ echo "${file_contents}" >> kkloud
 
 cp kkloud "$VENV_DIR/bin/"
 
-# Installation du CLI Python (par exemple depuis un fichier requirements.txt ou un package spécifique)
+# Installation du CLI Python 
 if [ -f "requirements.txt" ]; then
     echo "Installation des dépendances à partir de requirements.txt..."
     pip install -r requirements.txt
